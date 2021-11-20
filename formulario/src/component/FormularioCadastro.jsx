@@ -1,112 +1,41 @@
-import React, { useState } from 'react'
-import { Button, TextField, Switch } from '@material-ui/core'
+import React, { useEffect, useState } from 'react'
+import { Stepper, Step, StepLabel } from '@material-ui/core'
+import DadosPessoais from './DadosPessoais'
+import DadosUsuario from './DadosUsuario'
+import DadosEntrega from './DadosEntrega'
 
 export default function FormularioCadastro({ onSubmit }) {
-  const [nome, setNome] = useState("")
-  const [sobrenome, setSobrenome] = useState("")
-  const [cpf, setCpf] = useState("")
-  const [promocoes, setPromocoes] = useState(true)
-  const [novidades, setNovidades] = useState(true)
-  const [erroCpf, setErroCpf] = useState({ status: false, text: "" })
+  const [etapaAtual, setEtapaAtual] = useState(0)
+  const [dadosColetados, setDados] = useState({})
 
-  const resetFields = () => {
-    setNome("")
-    setSobrenome("")
-    setCpf("")
-    setPromocoes(false)
-    setNovidades(false)
-    setErroCpf({ status: false, text: "" })
+  useEffect(() => {
+    console.log('payload: ', dadosColetados)
+  })
+
+  const proximo = () => {
+    setEtapaAtual(etapaAtual + 1)
   }
+
+  const coletarDados = (dados) => {
+    setDados({...dadosColetados, ...dados})
+    proximo()
+  }
+
+  const formularios = [
+    <DadosUsuario enviar={coletarDados} />,
+    <DadosPessoais onSubmit={coletarDados} />,
+    <DadosEntrega enviar={coletarDados} />
+  ]
 
   return (
     <React.Fragment>
       <h1 style={{ textAlign: 'center' }}>Formulário de cadastro</h1>
-      <form onSubmit={(event) => {
-        event.preventDefault()
-
-        if(cpf.toString().length !== 11) return
-
-        onSubmit({ nome, sobrenome, cpf, promocoes, novidades })
-      }}>
-        <TextField
-          required
-          label="Nome"
-          margin="dense"
-          fullWidth={true}
-          value={nome}
-          onChange={(event) => {
-            setNome(event.target.value)
-          }}
-        />
-        <TextField
-          required
-          label="Sobrenome"
-          margin="dense"
-          fullWidth={true}
-          value={sobrenome}
-          onChange={(event) => {
-            setSobrenome(event.target.value)
-          }}
-        />
-        <TextField
-          error={erroCpf.status}
-          helperText={erroCpf.text}
-          required
-          label="CPF"
-          margin="dense"
-          fullWidth={true}
-          value={cpf}
-          onBlur={(event) => {
-            const cpf = Number(event.target.value)
-            if(cpf.toString().length !== 11) {
-              setErroCpf({ status: true, text: "CPF precisa ter 11 dígitos" })
-            } 
-          }}
-          onChange={(event) => {
-            const cpf = Number(event.target.value)
-            
-            if(isNaN(cpf)) return setCpf("")
-
-            setCpf(cpf.toString().substring(0, 11))
-            if(cpf.toString().length === 11) {
-              setErroCpf({ status: false, text: "" })
-            }
-          }}
-        />
-
-        <label htmlFor="Promocoes">Promoções</label>
-        <Switch
-          checked={promocoes}
-          onChange={(event) => {
-            setPromocoes(event.target.checked)
-          }}
-        />
-
-        <label htmlFor="novidades">Novidades</label>
-        <Switch
-          checked={novidades}
-          onChange={(event) => {
-            setNovidades(event.target.checked)
-          }}
-        />
-
-        <Button
-          style={{ marginTop: '12px' }}
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth={true}
-        >Cadastrar</Button>
-
-        <Button
-          style={{ marginTop: '12px' }}
-          type="button"
-          variant="contained"
-          color="warning"
-          fullWidth={true}
-          onClick={e => resetFields(e)}
-        >Resetar campos</Button>
-      </form>
+      <Stepper activeStep={etapaAtual}>
+        <Step><StepLabel>Login</StepLabel></Step>
+        <Step><StepLabel>Pessoal</StepLabel></Step>
+        <Step><StepLabel>Entrega</StepLabel></Step>
+      </Stepper>
+      {formularios[etapaAtual]}
     </React.Fragment>
   )
 }
